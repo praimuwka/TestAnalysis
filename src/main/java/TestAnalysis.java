@@ -107,8 +107,6 @@ public class TestAnalysis {
             membersOfGroup[i] = new KV_II_Struct(papa, i);
             groupKeysSet.add(papa);
         }
-//        for (int ii : parent){
-//        }
 
         //для ключа каждой группы создаем контейнер, ключи и контейнеры выносим в отдельные массивы
 
@@ -120,13 +118,6 @@ public class TestAnalysis {
             listContainers[i] = list;
             groupKeys[i] = groupKeysSetIterator.next();
         }
-
-        //находим, какой группе принадлежит каждая строка
-//
-//        KV_II_Struct[] membersOfGroup = new KV_II_Struct[parent.length];
-//        for (int i = 0; i < membersOfGroup.length; i++) {
-//            membersOfGroup[i] = new KV_II_Struct(uf.find(i), i);
-//        }
 
         //группируем полученные key-value по ключу
 
