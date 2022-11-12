@@ -28,6 +28,6 @@ __2. Библиотека Trove:__ предоставлет наборы реа�
 Результаты тестирования приведены ниже.  
 Запуск производился с __ограничением памяти 1 Гб__ (-Xmx1G)
 #### Результат тестирования на первом файле [lng.txt](https://github.com/PeacockTeam/new-job/releases/download/v1.0/lng-4.txt.gz):  
-![image](https://user-images.githubusercontent.com/57357300/201469970-ebb8b2e7-fb7a-4441-98e8-986e20ff23b4.png)
+![image](https://user-images.githubusercontent.com/57357300/201470663-1d224963-8130-46cc-a97c-6ed0620ae768.png)
 #### Результат тестирования на втором файле [lng-big.csv](https://github.com/PeacockTeam/new-job/releases/download/v1.0/lng-big.7z):  
 ![image](https://user-images.githubusercontent.com/57357300/201470002-458ba0a9-20aa-4065-a43a-220a8b220842.png)
