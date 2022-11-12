@@ -9,12 +9,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class TestAnalysis {
-//    private static Pattern quotes = Pattern.compile("\"([\\s\\S]+?)\"|\"\"");
+    private static Pattern quotes = Pattern.compile("\"([\\s\\S]+?)\"|\"\"");
 //    private static Pattern quote = Pattern.compile("\"");
 //    private static int count;
+
+    public static void mains(String[] args) {
+        var rowSet = read(args[0]);
+        Set<Integer> ss = new HashSet();
+        for(String row : rowSet){
+            var r = row.split(";");
+            ss.add(r.length);
+            for(String s : r)
+                System.out.print("-" + s + "- " + quotes.matcher(s).matches());
+            System.out.println();
+        }
+        System.out.println(ss);
+    }
 
     public static void main(String[] args) {
         long m = System.currentTimeMillis();
@@ -158,12 +172,15 @@ public class TestAnalysis {
         System.out.println("Время выполнения: " + ((System.currentTimeMillis()-m)/1000 + 1) + " сек");
     }
     public static boolean rowIsValid(String[] parts){
-        //
-        // все значения были предварительно проанализированы
-        // невалидных строк не найдено
-        // поэтому здесь пусто
-        // при необходимости можно добавить валидацию в этот метод
-        //
+//
+//         все значения были предварительно проанализированы
+//         невалидных строк не найдено
+//         поэтому здесь пусто
+//         при необходимости можно добавить валидацию в этот метод
+//        for (String s : parts){
+//            if(!quotes.matcher(s).matches()&&s!="")
+//                return false;
+//        }
         return true;
     }
     public static HashSet<String> read(String path){
