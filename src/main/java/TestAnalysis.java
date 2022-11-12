@@ -172,15 +172,10 @@ public class TestAnalysis {
         System.out.println("Время выполнения: " + ((System.currentTimeMillis()-m)/1000 + 1) + " сек");
     }
     public static boolean rowIsValid(String[] parts){
-//
-//         все значения были предварительно проанализированы
-//         невалидных строк не найдено
-//         поэтому здесь пусто
-//         при необходимости можно добавить валидацию в этот метод
-//        for (String s : parts){
-//            if(!quotes.matcher(s).matches()&&s!="")
-//                return false;
-//        }
+        for (String s : parts){
+            if(!quotes.matcher(s).matches()&&s!="")
+                return false;
+        }
         return true;
     }
     public static HashSet<String> read(String path){
