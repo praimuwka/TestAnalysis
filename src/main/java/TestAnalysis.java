@@ -14,21 +14,6 @@ import java.util.stream.Collectors;
 
 public class TestAnalysis {
     private static Pattern quotes = Pattern.compile("\"([\\s\\S]+?)\"|\"\"");
-//    private static Pattern quote = Pattern.compile("\"");
-//    private static int count;
-
-    public static void mains(String[] args) {
-        var rowSet = read(args[0]);
-        Set<Integer> ss = new HashSet();
-        for(String row : rowSet){
-            var r = row.split(";");
-            ss.add(r.length);
-            for(String s : r)
-                System.out.print("-" + s + "- " + quotes.matcher(s).matches());
-            System.out.println();
-        }
-        System.out.println(ss);
-    }
 
     public static void main(String[] args) {
         long m = System.currentTimeMillis();
@@ -67,9 +52,9 @@ public class TestAnalysis {
         int rowsCount = rowMap.size();
 
         // Создаем массив столбцов значений
-        ArrayList<List<KV_SI_Struct>> columns = new ArrayList(maxNumOfValues);
+        ArrayList<List<KV_Si_Struct>> columns = new ArrayList(maxNumOfValues);
         for (int i = 0; i < maxNumOfValues; i++) {
-            columns.add(new ArrayList<KV_SI_Struct>());
+            columns.add(new ArrayList<KV_Si_Struct>());
         }
 
         // Раскидываем подстроки по столбцам
@@ -77,7 +62,7 @@ public class TestAnalysis {
             String[] vector = vectorArr.get(i);
             for (int j = 0; j < vector.length; j++) {
                 if (vector[j].length()>2) {
-                    columns.get(j).add(new KV_SI_Struct(i, vector[j]));
+                    columns.get(j).add(new KV_Si_Struct(i, vector[j]));
                 }
             }
         }
@@ -85,16 +70,16 @@ public class TestAnalysis {
 
         //создаем список для подгрупп строк, которые должны быть объединены
         List<int[]> setsOfConnectedIndexes = new LinkedList();
-        for (List<KV_SI_Struct> column : columns){
+        for (List<KV_Si_Struct> column : columns){
             //находим подгруппы в каждом столбце
-            Map<String, List<KV_SI_Struct>> setsOfColumn = column.stream().
-                    collect(Collectors.groupingBy(KV_SI_Struct::getString));
+            Map<String, List<KV_Si_Struct>> setsOfColumn = column.stream().
+                    collect(Collectors.groupingBy(KV_Si_Struct::getString));
             //записываем подгруппы в список
             for (var elem : setsOfColumn.entrySet()){
                 if(elem.getValue().size()>1){
                     int[] set = new int[elem.getValue().size()];
                     int i = 0;
-                    for(KV_SI_Struct el: elem.getValue()){
+                    for(KV_Si_Struct el: elem.getValue()){
                         set[i] = el.index;
                         i++;
                     }
@@ -115,10 +100,10 @@ public class TestAnalysis {
 
         //находим уникальный ключ для каждой группы + узнаем какой группе принадлежит каждая строка
         TIntSet groupKeysSet = new TIntHashSet();
-        KV_II_Struct[] membersOfGroup = new KV_II_Struct[uf.parent.length];
+        KV_ii_Struct[] membersOfGroup = new KV_ii_Struct[uf.parent.length];
         for (int i = 0; i < membersOfGroup.length; i++) {
             int papa = uf.find(uf.parent[i]);
-            membersOfGroup[i] = new KV_II_Struct(papa, i);
+            membersOfGroup[i] = new KV_ii_Struct(papa, i);
             groupKeysSet.add(papa);
         }
 
@@ -135,7 +120,7 @@ public class TestAnalysis {
 
         //группируем полученные key-value по ключу
 
-        Map<Integer, List<KV_II_Struct>> groupsMap = Arrays.stream(membersOfGroup)
+        Map<Integer, List<KV_ii_Struct>> groupsMap = Arrays.stream(membersOfGroup)
                 .collect(Collectors.groupingBy(r->r.getKey()));
 
         //из полученных наборов формируем массивы индексов, входящих в одну группу
@@ -221,11 +206,11 @@ public class TestAnalysis {
 
 }
 //структура строка-индекс String-int для группировки по строке при помощи Stream api
-class KV_SI_Struct {
+class KV_Si_Struct {
     int index;
     String string;
 
-    public KV_SI_Struct(int index, String string) {
+    public KV_Si_Struct(int index, String string) {
         this.index = index;
         this.string = string;
     }
@@ -239,11 +224,11 @@ class KV_SI_Struct {
     }
 }
 //структура ключ-значение int-int для группировки по ключу при помощи Stream api
-class KV_II_Struct {
+class KV_ii_Struct {
     int key;
     int value;
 
-    public KV_II_Struct(int key, int value) {
+    public KV_ii_Struct(int key, int value) {
         this.key = key;
         this.value = value;
     }
