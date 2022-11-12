@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class TestAnalysis {
-    private static Pattern quotes = Pattern.compile("\"([\\s\\S]+?)\"|\"\"");
+    private static final Pattern quotes = Pattern.compile("\"([\\s\\S]+?)\"|\"\"");
 
     public static void main(String[] args) {
         long m = System.currentTimeMillis();
@@ -134,9 +134,10 @@ public class TestAnalysis {
         //находим кол-во групп, в которые входит более 1 элемента
 
         int bigGroupsCount = 0;
-        for (int i = 0; i < groupedIndexes.length; i++) {
-            if(groupedIndexes[i].size()>1)
-                bigGroupsCount++;
+        int i = groupedIndexes.length-1;
+        while(groupedIndexes[i].size()>1){
+            bigGroupsCount++;
+            i--;
         }
 
         //выводим группы в файл по убыванию размера
