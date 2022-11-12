@@ -22,12 +22,9 @@ public class TestAnalysis {
 
         var rowSet = read(args[0]);
 
-        //переносим в массив для быстрого доступа по индексу
-
-        ArrayList<String> rowArr = new ArrayList<>(rowSet.size());
-        for (String str: rowSet) {
-            rowArr.add(str);
-        }
+        //массивы для быстрого доступа по индексу
+        ArrayList<String> validRows = new ArrayList(rowSet.size());
+        ArrayList<String[]> vectorArr = new ArrayList(rowSet.size());
 
         //выбираем валидные строки и определяем индексы для доступа к ним
         //
@@ -35,21 +32,16 @@ public class TestAnalysis {
         //
         //находим число столбцов
 
-        HashMap<String, Integer> rowMap = new HashMap(rowArr.size());
-        ArrayList<String[]> vectorArr = new ArrayList(rowArr.size());
         int maxNumOfValues = 0;
-        int index = 0;
-
-        for(String row : rowArr){
+        for(String row : rowSet){
             String[] vector = row.split(";");
             if(rowIsValid(vector)){ //здесь могла быть ваша валидация
                 maxNumOfValues = Math.max(maxNumOfValues, vector.length);
-                rowMap.put(row, index);
-                index++;
                 vectorArr.add(vector);
+                validRows.add(row);
             }
         }
-        int rowsCount = rowMap.size();
+        int rowsCount = validRows.size();
 
         // Создаем массив столбцов значений
         ArrayList<List<KV_Si_Struct>> columns = new ArrayList(maxNumOfValues);
@@ -149,7 +141,7 @@ public class TestAnalysis {
 
         //выводим группы в файл по убыванию размера
 
-        write("output.txt", groupedIndexes, bigGroupsCount, rowArr);
+        write("output.txt", groupedIndexes, bigGroupsCount, validRows);
 
         System.out.println("Уникальных строк: " + rowsCount);
         System.out.println("Групп: " + groupsMap.size());
