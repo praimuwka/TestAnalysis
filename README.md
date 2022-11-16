@@ -30,4 +30,4 @@ __2. Библиотека Trove:__ предоставлет наборы реа�
 #### Результат тестирования на первом файле [lng.txt](https://github.com/PeacockTeam/new-job/releases/download/v1.0/lng-4.txt.gz):  
 ![image](https://user-images.githubusercontent.com/57357300/201470663-1d224963-8130-46cc-a97c-6ed0620ae768.png)
 #### Результат тестирования на втором файле [lng-big.csv](https://github.com/PeacockTeam/new-job/releases/download/v1.0/lng-big.7z):  
-![image](https://imgbb.com/"><img src="https://i.ibb.co/Q8TBqjB/image.png)
+![image](https://i.ibb.co/Q8TBqjB/image.png)
