@@ -85,23 +85,22 @@ public class TestAnalysis {
             }
         }
 
-        //находим уникальный ключ для каждой группы + узнаем какой группе принадлежит каждая строка
+        //узнаем какой группе принадлежит каждая строка
+
         KV_ii_Struct[] membersOfGroup = new KV_ii_Struct[uf.parent.length];
-        int[] groupKeysSet = new int[membersOfGroup.length];
         for (int i = 0; i < membersOfGroup.length; i++) {
             int papa = uf.find(uf.parent[i]);
             membersOfGroup[i] = new KV_ii_Struct(papa, i);
-            groupKeysSet[i] = papa;
         }
 
         //группируем полученные key-value по ключу
 
         Map<Integer, List<KV_ii_Struct>> groupsMap = Arrays.stream(membersOfGroup)
-                .collect(Collectors.groupingBy(r->r.getKey()));
+                .collect(Collectors.groupingBy(KV_ii_Struct::getKey));
 
         //из полученных наборов формируем массивы индексов, входящих в одну группу
 
-        ArrayList<int[]> listContainers = new ArrayList(groupKeysSet.length);
+        ArrayList<int[]> listContainers = new ArrayList(groupsMap.keySet().size());
         var groupsIterator = groupsMap.values().iterator();
         for (int i = 0; i < groupsMap.keySet().size(); i++) { //проход по спискам индексов (группам)
             var group = groupsIterator.next();
@@ -116,10 +115,8 @@ public class TestAnalysis {
         // сортируем наборы по размеру
 
         Collections.sort(listContainers, (x, y) -> {
-            int a = x.length, b=y.length;
-            return a > b ? 1 : a < b ? -1 : 0;
+            return Integer.compare(x.length, y.length);
         });
-
 
         //находим кол-во групп, в которые входит более 1 элемента
 
@@ -191,10 +188,6 @@ class KV_Si_Struct {
     public KV_Si_Struct(int index, String string) {
         this.index = index;
         this.string = string;
-    }
-
-    public int getIndex() {
-        return index;
     }
 
     public String getString() {
