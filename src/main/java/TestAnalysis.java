@@ -1,9 +1,3 @@
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.list.linked.TIntLinkedList;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,9 +20,9 @@ public class TestAnalysis {
         ArrayList<String> validRows = new ArrayList(rowSet.size());
         ArrayList<String[]> vectorArr = new ArrayList(rowSet.size());
 
-        //выбираем валидные строки и определяем индексы для доступа к ним
-        //
         //разбиваем строки на части
+        //
+        //выбираем валидные строки и определяем индексы для доступа к ним
         //
         //находим число столбцов
 
@@ -41,16 +35,17 @@ public class TestAnalysis {
                 validRows.add(row);
             }
         }
-        int rowsCount = validRows.size();
 
         // Создаем массив столбцов значений
+
         ArrayList<List<KV_Si_Struct>> columns = new ArrayList(maxNumOfValues);
         for (int i = 0; i < maxNumOfValues; i++) {
             columns.add(new ArrayList<KV_Si_Struct>());
         }
 
         // Раскидываем подстроки по столбцам
-        for (int i = 0; i < rowsCount; i++) {
+
+        for (int i = 0; i < validRows.size(); i++) {
             String[] vector = vectorArr.get(i);
             for (int j = 0; j < vector.length; j++) {
                 if (vector[j].length()>2) {
@@ -59,8 +54,8 @@ public class TestAnalysis {
             }
         }
 
-
         //создаем список для подгрупп строк, которые должны быть объединены
+
         List<int[]> setsOfConnectedIndexes = new LinkedList();
         for (List<KV_Si_Struct> column : columns){
             //находим подгруппы в каждом столбце
@@ -82,7 +77,7 @@ public class TestAnalysis {
 
         //проходим по подгруппам и объединяем элементы в деревья (группы)
 
-        QuickUnionPathHalvingUF uf = new QuickUnionPathHalvingUF(rowsCount);
+        QuickUnionPathHalvingUF uf = new QuickUnionPathHalvingUF(validRows.size());
         for(int[] setArr : setsOfConnectedIndexes){
             int papa = setArr[0];
             for (int i = 1; i < setArr.length; i++) {
@@ -91,23 +86,12 @@ public class TestAnalysis {
         }
 
         //находим уникальный ключ для каждой группы + узнаем какой группе принадлежит каждая строка
-        TIntSet groupKeysSet = new TIntHashSet();
         KV_ii_Struct[] membersOfGroup = new KV_ii_Struct[uf.parent.length];
+        int[] groupKeysSet = new int[membersOfGroup.length];
         for (int i = 0; i < membersOfGroup.length; i++) {
             int papa = uf.find(uf.parent[i]);
             membersOfGroup[i] = new KV_ii_Struct(papa, i);
-            groupKeysSet.add(papa);
-        }
-
-        //для ключа каждой группы создаем контейнер, ключи и контейнеры выносим в отдельные массивы
-
-        TIntIterator groupKeysSetIterator = groupKeysSet.iterator();
-        TIntLinkedList[] listContainers = new TIntLinkedList[groupKeysSet.size()];
-        int[] groupKeys = new int[groupKeysSet.size()];
-        for (int i = 0; i < groupKeysSet.size(); i++) {
-            TIntLinkedList list = new TIntLinkedList();
-            listContainers[i] = list;
-            groupKeys[i] = groupKeysSetIterator.next();
+            groupKeysSet[i] = papa;
         }
 
         //группируем полученные key-value по ключу
@@ -117,36 +101,37 @@ public class TestAnalysis {
 
         //из полученных наборов формируем массивы индексов, входящих в одну группу
 
-        TIntArrayList[] groupedIndexes = new TIntArrayList[groupsMap.keySet().size()];
+        ArrayList<int[]> listContainers = new ArrayList(groupKeysSet.length);
         var groupsIterator = groupsMap.values().iterator();
-
         for (int i = 0; i < groupsMap.keySet().size(); i++) { //проход по спискам индексов (группам)
             var group = groupsIterator.next();
-            TIntArrayList itemsIndexes = new TIntArrayList(group.size());
-            group.stream().forEach(item->itemsIndexes.add(item.getValue()));
-            groupedIndexes[i] = itemsIndexes;
+            int[] itemsIndexes = new int[group.size()];
+            var groupIterator = group.iterator();
+            for (int j = 0; j < group.size(); j++) {
+                itemsIndexes[j] = groupIterator.next().getValue();
+            }
+            listContainers.add(itemsIndexes);
         }
 
         // сортируем наборы по размеру
 
-        Arrays.sort(groupedIndexes, Comparator.comparing(a->a.size()));
+        Collections.sort(listContainers, (x, y) -> {
+            int a = x.length, b=y.length;
+            return a > b ? 1 : a < b ? -1 : 0;
+        });
+
 
         //находим кол-во групп, в которые входит более 1 элемента
 
-        int bigGroupsCount = 0;
-        int i = groupedIndexes.length-1;
-        while(groupedIndexes[i].size()>1){
-            bigGroupsCount++;
-            i--;
-        }
+        var bigGroups = listContainers.stream().filter(x->x.length>1).count();
 
         //выводим группы в файл по убыванию размера
 
-        write("output.txt", groupedIndexes, bigGroupsCount, validRows);
+        write("output.txt", listContainers, bigGroups, validRows);
 
-        System.out.println("Уникальных строк: " + rowsCount);
+        System.out.println("Уникальных строк: " + validRows.size());
         System.out.println("Групп: " + groupsMap.size());
-        System.out.println("Больших групп: " + bigGroupsCount);
+        System.out.println("Больших групп: " + bigGroups);
         System.out.println("Время выполнения: " + ((System.currentTimeMillis()-m)/1000 + 1) + " сек");
     }
     public static boolean rowIsValid(String[] parts){
@@ -173,7 +158,7 @@ public class TestAnalysis {
         return set;
     }
 
-    public static void write(String path, TIntArrayList[] groups, int bigGroupsCount, ArrayList<String> strings){
+    public static void write(String path, ArrayList<int[]> groups, long bigGroupsCount, ArrayList<String> strings){
         try {
             Path newFilePath = Paths.get(path);
             Files.deleteIfExists(newFilePath);
@@ -182,11 +167,11 @@ public class TestAnalysis {
             FileWriter writer = new FileWriter(x.toFile());
             int groupCounter = 0;
             writer.write("Групп с более чем одним элементом: " +  bigGroupsCount + sep + sep);
-            for (int i = groups.length-1; i >=0; i--) {
+            for (int i = groups.size()-1; i >=0; i--) {
                 writer.write("Группа " + ++groupCounter + sep + sep);
-                var group = groups[i];
-                for (int j = 0; j < group.size(); j++) {
-                    writer.write(strings.get(group.get(j)) + sep + sep);
+                var group = groups.get(i);
+                for (int j = 0; j < group.length; j++) {
+                    writer.write(strings.get(group[j]) + sep + sep);
                 }
             }
             writer.close();
