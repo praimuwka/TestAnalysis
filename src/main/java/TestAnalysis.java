@@ -120,15 +120,15 @@ public class TestAnalysis {
 
         //находим кол-во групп, в которые входит более 1 элемента
 
-        var bigGroups = listContainers.stream().filter(x->x.length>1).count();
+        var bigGroupsCount = listContainers.stream().filter(x->x.length>1).count();
 
         //выводим группы в файл по убыванию размера
 
-        write("output.txt", listContainers, bigGroups, validRows);
+        write("output.txt", listContainers, bigGroupsCount, validRows);
 
         System.out.println("Уникальных строк: " + validRows.size());
         System.out.println("Групп: " + groupsMap.size());
-        System.out.println("Больших групп: " + bigGroups);
+        System.out.println("Больших групп: " + bigGroupsCount);
         System.out.println("Время выполнения: " + ((System.currentTimeMillis()-m)/1000 + 1) + " сек");
     }
     public static boolean rowIsValid(String[] parts){
