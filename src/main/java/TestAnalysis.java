@@ -14,7 +14,7 @@ public class TestAnalysis {
 
         //получаем уникальные строки
 
-        HashSet<String> rowSet = read(args[0]);
+        HashSet<String> rowSet = read(args[0]); //O(n)
 
         //массивы для быстрого доступа по индексу
         ArrayList<String> validRows = new ArrayList(rowSet.size());
@@ -27,9 +27,9 @@ public class TestAnalysis {
         //находим число столбцов
 
         int maxNumOfValues = 0;
-        for(String row : rowSet){
-            String[] vector = row.split(";");
-            if(rowIsValid(vector)){ //здесь могла быть ваша валидация
+        for(String row : rowSet){ //O(N)
+            String[] vector = row.split(";");//O(String.length)
+            if(rowIsValid(vector)){ //O(vector.length)
                 maxNumOfValues = Math.max(maxNumOfValues, vector.length);
                 vectorArr.add(vector);
                 validRows.add(row);
@@ -43,7 +43,7 @@ public class TestAnalysis {
             columns.add(new ArrayList<KV_Si_Struct>());
         }
 
-        // Раскидываем подстроки по столбцам
+        // Распределяем подстроки по столбцам
 
         for (int i = 0; i < validRows.size(); i++) {
             String[] vector = vectorArr.get(i);
@@ -77,7 +77,7 @@ public class TestAnalysis {
 
         //проходим по подгруппам и объединяем элементы в деревья (группы)
 
-        QuickUnionPathHalvingUF uf = new QuickUnionPathHalvingUF(validRows.size());
+        QuickUnionWithpathComressionUF uf = new QuickUnionWithpathComressionUF(validRows.size());
         for(int[] setArr : setsOfConnectedIndexes){
             int papa = setArr[0];
             for (int i = 1; i < setArr.length; i++) {
@@ -93,43 +93,28 @@ public class TestAnalysis {
             membersOfGroup[i] = new KV_ii_Struct(papa, i);
         }
 
-        //группируем полученные key-value по ключу
+        //компануем группы по ключу, сортируем по размеру и собираем в массив
 
-        Map<Integer, List<KV_ii_Struct>> groupsMap = Arrays.stream(membersOfGroup)
-                .collect(Collectors.groupingBy(KV_ii_Struct::getKey));
-
-        //из полученных наборов формируем массивы индексов, входящих в одну группу
-
-        ArrayList<int[]> listContainers = new ArrayList(groupsMap.keySet().size());
-        Iterator<List<KV_ii_Struct>> groupsIterator = groupsMap.values().iterator();
-        for (int i = 0; i < groupsMap.keySet().size(); i++) { //проход по спискам индексов (группам)
-            List<KV_ii_Struct> group = groupsIterator.next();
-            int[] itemsIndexes = new int[group.size()];
-            Iterator<KV_ii_Struct> groupIterator = group.iterator();
-            for (int j = 0; j < group.size(); j++) {
-                itemsIndexes[j] = groupIterator.next().getValue();
-            }
-            listContainers.add(itemsIndexes);
-        }
-
-        // сортируем наборы по размеру
-
-        Collections.sort(listContainers, Comparator.comparingInt(x -> x.length));
+        var groups = Arrays.stream(membersOfGroup)
+                .collect(Collectors.groupingBy(KV_ii_Struct::getKey))
+                .values().stream()
+                .sorted(Comparator.comparingInt(x -> x.size()))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         //находим кол-во групп, в которые входит более 1 элемента
 
         long bigGroupsCount = 0;
-        for (var container: listContainers){
-            if (container.length>1)
-                bigGroupsCount++;
+        int groupIndex = groups.size()-1;
+        while(groupIndex >= 0 && groups.get(groupIndex--).size()>1){
+            bigGroupsCount++;
         }
 
         //выводим группы в файл по убыванию размера
 
-        write("output.txt", listContainers, bigGroupsCount, validRows);
+        write("output.txt", groups, bigGroupsCount, validRows);
 
         System.out.println("Уникальных строк: " + validRows.size());
-        System.out.println("Групп: " + groupsMap.size());
+        System.out.println("Групп: " + groups.size());
         System.out.println("Больших групп: " + bigGroupsCount);
         System.out.println("Время выполнения: " + ((System.currentTimeMillis()-m)/1000 + 1) + " сек");
     }
@@ -157,7 +142,7 @@ public class TestAnalysis {
         return rows;
     }
 
-    public static void write(String path, ArrayList<int[]> groups, long bigGroupsCount, ArrayList<String> strings){
+    public static void write(String path, ArrayList<List<KV_ii_Struct>> groups, long bigGroupsCount, ArrayList<String> strings){
         try {
             Path newFilePath = Paths.get(path);
             Files.deleteIfExists(newFilePath);
@@ -168,9 +153,9 @@ public class TestAnalysis {
             writer.write("Групп с более чем одним элементом: " +  bigGroupsCount + sep + sep);
             for (int i = groups.size()-1; i >=0; i--) {
                 writer.write("Группа " + ++groupCounter + sep + sep);
-                int[] group = groups.get(i);
-                for (int j = 0; j < group.length; j++) {
-                    writer.write(strings.get(group[j]) + sep + sep);
+                List<KV_ii_Struct> group = groups.get(i);
+                for (var item : group) {
+                    writer.write(strings.get(item.getValue()) + sep + sep);
                 }
             }
             writer.close();

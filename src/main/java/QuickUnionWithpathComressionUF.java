@@ -1,35 +1,8 @@
 /******************************************************************************
- *  Compilation:  javac QuickUnionPathHalvingUF.java
- *  Execution:  java QuickUnionPathHalvingUF < input.txt
- *  Dependencies: StdIn.java StdOut.java
- *  Data files:   https://algs4.cs.princeton.edu/15uf/tinyUF.txt
- *                https://algs4.cs.princeton.edu/15uf/mediumUF.txt
- *                https://algs4.cs.princeton.edu/15uf/largeUF.txt
- *
- *  Quick-union with path compression via halving
- *  (but no weighting by size or rank).
- *
- ******************************************************************************/
-
-/**
- *  The {@code QuickUnionPathHalvingUF} class represents a
- *  union–find data structure.
- *  It supports the <em>union</em> and <em>find</em> operations, along with
- *  methods for determining whether two sites are in the same component
- *  and the total number of components.
- *  <p>
- *  This implementation uses quick union (no weighting) with path halving.
- *  Initializing a data structure with <em>n</em> sites takes linear time.
- *  Afterwards, <em>union</em>, <em>find</em>, and <em>connected</em> take
- *  logarithmic amortized time <em>count</em> takes constant time.
- *  <p>
- *  For additional documentation, see <a href="https://algs4.cs.princeton.edu/15uf">Section 1.5</a> of
- *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
- *
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
-public class QuickUnionPathHalvingUF {
+public class QuickUnionWithpathComressionUF {
     public int[] parent;  // parent[i] = parent of i
     private int count;     // number of components
 
@@ -41,9 +14,9 @@ public class QuickUnionPathHalvingUF {
      * @param  n the number of elements
      * @throws IllegalArgumentException if {@code n < 0}
      */
-    public QuickUnionPathHalvingUF(int n) {
-        count = n;
+    public QuickUnionWithpathComressionUF(int n) {
         parent = new int[n];
+        count = n;
         for (int i = 0; i < n; i++) {
             parent[i] = i;
         }
@@ -66,9 +39,17 @@ public class QuickUnionPathHalvingUF {
      * @throws IllegalArgumentException unless {@code 0 <= p < n}
      */
     public int find(int p) {
-        while (p != parent[p])
-            p = parent[p];
-        return p;
+        if (p != parent[p])
+            parent[p] = find(parent[p]);
+        return parent[p];
+    }
+
+    // validate that p is a valid index
+    private void validate(int p) {
+        int n = parent.length;
+        if (p < 0 || p >= n) {
+            throw new IllegalArgumentException("index " + p + " is not between 0 and " + (n-1));
+        }
     }
 
     /**
@@ -104,13 +85,5 @@ public class QuickUnionPathHalvingUF {
         count--;
     }
 
-    /**
-     * Reads an integer {@code n} and a sequence of pairs of integers
-     * (between {@code 0} and {@code n-1}) from standard input, where each integer
-     * in the pair represents some element;
-     * if the elements are in different sets, merge the two sets
-     * and print the pair to standard output.
-     *
-     * @param args the command-line arguments
-     */
+
 }
