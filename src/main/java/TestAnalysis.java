@@ -54,34 +54,21 @@ public class TestAnalysis {
             }
         }
 
-        //создаем список для подгрупп строк, которые должны быть объединены
+        //находим подгруппы, и объединяем элементы
 
-        List<int[]> setsOfConnectedIndexes = new LinkedList();
+        QuickUnionWithpathComressionUF uf = new QuickUnionWithpathComressionUF(validRows.size());
         for (List<KV_Si_Struct> column : columns){
             //находим подгруппы в каждом столбце
             Map<String, List<KV_Si_Struct>> setsOfColumn = column.stream().
                     collect(Collectors.groupingBy(KV_Si_Struct::getString));
             //записываем подгруппы в список
-            for (var elem : setsOfColumn.entrySet()){
-                if(elem.getValue().size()>1){
-                    int[] set = new int[elem.getValue().size()];
-                    int i = 0;
-                    for(KV_Si_Struct el: elem.getValue()){
-                        set[i] = el.index;
-                        i++;
+            for (var set: setsOfColumn.values()){
+                if(set.size()>1){
+                    int papa = set.get(0).getIndex();
+                    for (int i = 1; i < set.size(); i++) {
+                        uf.union(papa, set.get(i).getIndex());
                     }
-                    setsOfConnectedIndexes.add(set);
                 }
-            }
-        }
-
-        //проходим по подгруппам и объединяем элементы в деревья (группы)
-
-        QuickUnionWithpathComressionUF uf = new QuickUnionWithpathComressionUF(validRows.size());
-        for(int[] setArr : setsOfConnectedIndexes){
-            int papa = setArr[0];
-            for (int i = 1; i < setArr.length; i++) {
-                uf.union(papa, setArr[i]);
             }
         }
 
@@ -175,6 +162,10 @@ class KV_Si_Struct {
     public KV_Si_Struct(int index, String string) {
         this.index = index;
         this.string = string;
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public String getString() {
