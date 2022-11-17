@@ -14,7 +14,7 @@ public class TestAnalysis {
 
         //получаем уникальные строки
 
-        var rowSet = read(args[0]);
+        HashSet<String> rowSet = read(args[0]);
 
         //массивы для быстрого доступа по индексу
         ArrayList<String> validRows = new ArrayList(rowSet.size());
@@ -101,11 +101,11 @@ public class TestAnalysis {
         //из полученных наборов формируем массивы индексов, входящих в одну группу
 
         ArrayList<int[]> listContainers = new ArrayList(groupsMap.keySet().size());
-        var groupsIterator = groupsMap.values().iterator();
+        Iterator<List<KV_ii_Struct>> groupsIterator = groupsMap.values().iterator();
         for (int i = 0; i < groupsMap.keySet().size(); i++) { //проход по спискам индексов (группам)
-            var group = groupsIterator.next();
+            List<KV_ii_Struct> group = groupsIterator.next();
             int[] itemsIndexes = new int[group.size()];
-            var groupIterator = group.iterator();
+            Iterator<KV_ii_Struct> groupIterator = group.iterator();
             for (int j = 0; j < group.size(); j++) {
                 itemsIndexes[j] = groupIterator.next().getValue();
             }
@@ -114,13 +114,15 @@ public class TestAnalysis {
 
         // сортируем наборы по размеру
 
-        Collections.sort(listContainers, (x, y) -> {
-            return Integer.compare(x.length, y.length);
-        });
+        Collections.sort(listContainers, Comparator.comparingInt(x -> x.length));
 
         //находим кол-во групп, в которые входит более 1 элемента
 
-        var bigGroupsCount = listContainers.stream().filter(x->x.length>1).count();
+        long bigGroupsCount = 0;
+        for (var container: listContainers){
+            if (container.length>1)
+                bigGroupsCount++;
+        }
 
         //выводим группы в файл по убыванию размера
 
@@ -139,12 +141,12 @@ public class TestAnalysis {
         return true;
     }
     public static HashSet<String> read(String path){
-        HashSet<String> set = new HashSet(1000000, 0.99f);
+        HashSet<String> rows = new HashSet();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(path));
             String line = reader.readLine();
             while (line != null) {
-                set.add(line);
+                rows.add(line);
                 line = reader.readLine();
             }
         } catch (FileNotFoundException e) {
@@ -152,21 +154,21 @@ public class TestAnalysis {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return set;
+        return rows;
     }
 
     public static void write(String path, ArrayList<int[]> groups, long bigGroupsCount, ArrayList<String> strings){
         try {
             Path newFilePath = Paths.get(path);
             Files.deleteIfExists(newFilePath);
-            var x = Files.createFile(newFilePath);
-            var sep = System.getProperty("line.separator");
+            Path x = Files.createFile(newFilePath);
+            String sep = System.getProperty("line.separator");
             FileWriter writer = new FileWriter(x.toFile());
             int groupCounter = 0;
             writer.write("Групп с более чем одним элементом: " +  bigGroupsCount + sep + sep);
             for (int i = groups.size()-1; i >=0; i--) {
                 writer.write("Группа " + ++groupCounter + sep + sep);
-                var group = groups.get(i);
+                int[] group = groups.get(i);
                 for (int j = 0; j < group.length; j++) {
                     writer.write(strings.get(group[j]) + sep + sep);
                 }
