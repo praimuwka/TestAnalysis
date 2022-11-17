@@ -58,11 +58,9 @@ public class TestAnalysis {
 
         QuickUnionWithpathComressionUF uf = new QuickUnionWithpathComressionUF(validRows.size());
         for (List<KV_Si_Struct> column : columns){
-            //находим подгруппы в каждом столбце
-            Map<String, List<KV_Si_Struct>> setsOfColumn = column.stream().
+            Map<String, List<KV_Si_Struct>> setsToUnion = column.stream().
                     collect(Collectors.groupingBy(KV_Si_Struct::getString));
-            //записываем подгруппы в список
-            for (var set: setsOfColumn.values()){
+            for (var set: setsToUnion.values()){
                 if(set.size()>1){
                     int papa = set.get(0).getIndex();
                     for (int i = 1; i < set.size(); i++) {
@@ -103,7 +101,8 @@ public class TestAnalysis {
         System.out.println("Уникальных строк: " + validRows.size());
         System.out.println("Групп: " + groups.size());
         System.out.println("Больших групп: " + bigGroupsCount);
-        System.out.println("Время выполнения: " + ((System.currentTimeMillis()-m)/1000 + 1) + " сек");
+        System.out.println("Время выполнения: "
+                + String.format("%.2f",((System.currentTimeMillis()-m)*1.0/1000)) + " сек");
     }
     public static boolean rowIsValid(String[] parts){
         for (String s : parts){
