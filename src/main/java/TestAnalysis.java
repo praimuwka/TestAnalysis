@@ -14,7 +14,7 @@ public class TestAnalysis {
 
         //получаем уникальные строки
 
-        HashSet<String> rowSet = read(args[0]); //O(n)
+        HashSet<String> rowSet = read(args[0]);
 
         //массивы для быстрого доступа по индексу
         ArrayList<String> validRows = new ArrayList(rowSet.size());
@@ -27,9 +27,9 @@ public class TestAnalysis {
         //находим число столбцов
 
         int maxNumOfValues = 0;
-        for(String row : rowSet){ //O(N)
-            String[] vector = row.split(";");//O(String.length)
-            if(rowIsValid(vector)){ //O(vector.length)
+        for(String row : rowSet){
+            String[] vector = row.split(";");
+            if(rowIsValid(vector)){
                 maxNumOfValues = Math.max(maxNumOfValues, vector.length);
                 vectorArr.add(vector);
                 validRows.add(row);
@@ -57,12 +57,14 @@ public class TestAnalysis {
         //находим подгруппы, и объединяем элементы
 
         QuickUnionWithpathComressionUF uf = new QuickUnionWithpathComressionUF(validRows.size());
+        int alikeNumber = 0;
         for (List<KV_Si_Struct> column : columns){
             Map<String, List<KV_Si_Struct>> setsToUnion = column.stream().
                     collect(Collectors.groupingBy(KV_Si_Struct::getString));
             for (var set: setsToUnion.values()){
                 if(set.size()>1){
-                    int papa = set.get(0).getIndex();
+                    alikeNumber += set.size();
+                    int papa = uf.find(set.get(0).getIndex());
                     for (int i = 1; i < set.size(); i++) {
                         uf.union(papa, set.get(i).getIndex());
                     }
@@ -70,18 +72,14 @@ public class TestAnalysis {
             }
         }
 
-        //узнаем какой группе принадлежит каждая строка
-
-        KV_ii_Struct[] membersOfGroup = new KV_ii_Struct[uf.parent.length];
-        for (int i = 0; i < membersOfGroup.length; i++) {
-            int papa = uf.find(uf.parent[i]);
-            membersOfGroup[i] = new KV_ii_Struct(papa, i);
-        }
-
         //компануем группы по ключу, сортируем по размеру и собираем в массив
 
-        var groups = Arrays.stream(membersOfGroup)
-                .collect(Collectors.groupingBy(KV_ii_Struct::getKey))
+        int[] indexes = new int[uf.parent.length];
+        for (int i = 0; i < indexes.length; i++) {
+            indexes[i]=i;
+        }
+        var groups = Arrays.stream(indexes).boxed()
+                .collect(Collectors.groupingBy(x->uf.find(uf.parent[x])))
                 .values().stream()
                 .sorted(Comparator.comparingInt(x -> x.size()))
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -98,11 +96,13 @@ public class TestAnalysis {
 
         write("output.txt", groups, bigGroupsCount, validRows);
 
-        System.out.println("Уникальных строк: " + validRows.size());
-        System.out.println("Групп: " + groups.size());
-        System.out.println("Больших групп: " + bigGroupsCount);
-        System.out.println("Время выполнения: "
+        //вывод статистики
+
+        System.out.println("Время выполнения: \t\t\t"
                 + String.format("%.2f",((System.currentTimeMillis()-m)*1.0/1000)) + " сек");
+        System.out.println("Групп: \t\t\t\t\t\t" + groups.size());
+        System.out.println("Больших групп: \t\t\t\t" + bigGroupsCount);
+        System.out.println("Уникальных валидных строк: \t" + validRows.size());
     }
     public static boolean rowIsValid(String[] parts){
         for (String s : parts){
@@ -128,7 +128,7 @@ public class TestAnalysis {
         return rows;
     }
 
-    public static void write(String path, ArrayList<List<KV_ii_Struct>> groups, long bigGroupsCount, ArrayList<String> strings){
+    public static void write(String path, ArrayList<List<Integer>> groups, long bigGroupsCount, ArrayList<String> strings){
         try {
             Path newFilePath = Paths.get(path);
             Files.deleteIfExists(newFilePath);
@@ -139,9 +139,9 @@ public class TestAnalysis {
             writer.write("Групп с более чем одним элементом: " +  bigGroupsCount + sep + sep);
             for (int i = groups.size()-1; i >=0; i--) {
                 writer.write("Группа " + ++groupCounter + sep + sep);
-                List<KV_ii_Struct> group = groups.get(i);
+                List<Integer> group = groups.get(i);
                 for (var item : group) {
-                    writer.write(strings.get(item.getValue()) + sep + sep);
+                    writer.write(strings.get(item) + sep + sep);
                 }
             }
             writer.close();
